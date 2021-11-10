@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -37,7 +38,9 @@ import com.microsoft.gradle.compile.SemanticTokenVisitor;
 import com.microsoft.gradle.handlers.CompletionHandler;
 import com.microsoft.gradle.handlers.DefaultDependenciesHandler;
 import com.microsoft.gradle.handlers.DefaultDependenciesHandler.DefaultDependencyItem;
-import com.microsoft.gradle.handlers.DependencyCompletionHandler;
+import com.microsoft.gradle.handlers.MavenCentralCompletionHandler;
+import com.microsoft.gradle.handlers.MavenIndexCompletionHandler;
+import com.microsoft.gradle.handlers.MavenLocalCompletionHandler;
 import com.microsoft.gradle.manager.GradleFilesManager;
 import com.microsoft.gradle.resolver.GradleClosure;
 import com.microsoft.gradle.resolver.GradleLibraryResolver;
@@ -87,7 +90,7 @@ import org.eclipse.lsp4j.util.Ranges;
 public class GradleServices implements TextDocumentService, WorkspaceService, LanguageClientAware {
 
   public static final List<String> supportedCommands = Arrays.asList("gradle.getDependencies", "gradle.distributionChanged",
-      "gradle.setPlugins", "gradle.setClosures", "gradle.setScriptClasspaths");
+    "gradle.setPlugins", "gradle.setClosures", "gradle.setScriptClasspaths");
 
   private LanguageClient client;
   private GradleFilesManager gradleFilesManager;
@@ -96,6 +99,9 @@ public class GradleServices implements TextDocumentService, WorkspaceService, La
   private CompletionVisitor completionVisitor;
   private GradleLibraryResolver libraryResolver;
   private DefaultDependenciesHandler defaultDependenciesHandler;
+  private MavenCentralCompletionHandler mavenCentralCompletionHandler;
+  private MavenLocalCompletionHandler mavenLocalCompletionHandler;
+  private MavenIndexCompletionHandler mavenIndexCompletionHandler;
 
   public GradleServices() {
     this.gradleFilesManager = new GradleFilesManager();
@@ -104,6 +110,9 @@ public class GradleServices implements TextDocumentService, WorkspaceService, La
     this.completionVisitor = new CompletionVisitor();
     this.libraryResolver = new GradleLibraryResolver(this.gradleFilesManager);
     this.defaultDependenciesHandler = new DefaultDependenciesHandler();
+    this.mavenCentralCompletionHandler = new MavenCentralCompletionHandler();
+    this.mavenLocalCompletionHandler = new MavenLocalCompletionHandler();
+    this.mavenIndexCompletionHandler = new MavenIndexCompletionHandler();
   }
 
   public GradleLibraryResolver getLibraryResolver() {
@@ -267,9 +276,17 @@ public class GradleServices implements TextDocumentService, WorkspaceService, La
     }
     for (DependencyItem dependency : dependencies) {
       if (Ranges.containsPosition(dependency.getRange(), params.getPosition())) {
-        DependencyCompletionHandler handler = new DependencyCompletionHandler();
-        return CompletableFuture
-            .completedFuture(Either.forLeft(handler.getDependencyCompletionItems(dependency, params.getPosition())));
+        List<CompletionItem> results = new ArrayList<>();
+        // Add Maven Index results
+        results.addAll(this.mavenIndexCompletionHandler.getDependencyCompletionItems(dependency, params.getPosition()));
+        // Add Maven Local Results
+        results.addAll(this.mavenLocalCompletionHandler.getDependencyCompletionItems(dependency, params.getPosition()));
+        // Add Maven Central Results
+        results
+            .addAll(this.mavenCentralCompletionHandler.getDependencyCompletionItems(dependency, params.getPosition()));
+        // remove duplicate results
+        results = results.stream().filter(Utils.distinctByKey(CompletionItem::getLabel)).collect(Collectors.toList());
+        return CompletableFuture.completedFuture(Either.forLeft(results));
       }
     }
     // should return empty if in constants
