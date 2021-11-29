@@ -38,6 +38,14 @@ jobs:
         timeout: '1800'
         ram: '16384'
         addProjectDirToScanningExclusionList: true
+    - task: CmdLine@2
+      displayName: Compile Results
+      inputs:
+        script: guardian process
+    - task: CmdLine@2
+      displayName: View Results
+      inputs:
+        script: guardian export
 
   - job: ci
     dependsOn: cred_scan
