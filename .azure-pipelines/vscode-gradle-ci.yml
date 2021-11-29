@@ -40,36 +40,9 @@ jobs:
         ram: '16384'
         addProjectDirToScanningExclusionList: true
     - task: Semmle@1
-      displayName: CodeQL - Semmle - gradle-server
+      displayName: CodeQL - Semmle
       inputs:
-        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-server'
-        language: 'java'
-        querySuite: 'Recommended'
-        timeout: '1800'
-        ram: '16384'
-        addProjectDirToScanningExclusionList: true
-    - task: Semmle@1
-      displayName: CodeQL - Semmle - gradle-plugin
-      inputs:
-        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-plugin'
-        language: 'java'
-        querySuite: 'Recommended'
-        timeout: '1800'
-        ram: '16384'
-        addProjectDirToScanningExclusionList: true
-    - task: Semmle@1
-      displayName: CodeQL - Semmle - gradle-plugin-api
-      inputs:
-        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-plugin-api'
-        language: 'java'
-        querySuite: 'Recommended'
-        timeout: '1800'
-        ram: '16384'
-        addProjectDirToScanningExclusionList: true
-    - task: Semmle@1
-      displayName: CodeQL - Semmle - gradle-language-server
-      inputs:
-        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-language-server'
+        sourceCodeDirectory: '$(Build.SourcesDirectory)'
         language: 'java'
         querySuite: 'Recommended'
         timeout: '1800'
