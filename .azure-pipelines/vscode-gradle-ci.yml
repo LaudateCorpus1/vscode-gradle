@@ -24,6 +24,21 @@ jobs:
       inputs:
         CredScan: true
 
+  - job: codeql_semmle
+    displayName: CodeQL - Semmle
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: Semmle@1
+      inputs:
+        sourceCodeDirectory: '$(Build.SourcesDirectory)/extension/src'
+        includeNodeModules: false
+        language: 'tsandjs'
+        querySuite: 'Recommended'
+        timeout: '1800'
+        ram: '16384'
+        addProjectDirToScanningExclusionList: true
+
   - job: ci
     dependsOn: cred_scan
     displayName: VSCode-Gradle-CI
