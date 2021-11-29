@@ -38,14 +38,38 @@ jobs:
         timeout: '1800'
         ram: '16384'
         addProjectDirToScanningExclusionList: true
-    - task: CmdLine@2
-      displayName: Compile Results
+    - task: Semmle@1
       inputs:
-        script: guardian process
-    - task: CmdLine@2
-      displayName: View Results
+        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-server/src'
+        language: 'java'
+        querySuite: 'Recommended'
+        timeout: '1800'
+        ram: '16384'
+        addProjectDirToScanningExclusionList: true
+    - task: Semmle@1
       inputs:
-        script: guardian export
+        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-plugin/src'
+        language: 'java'
+        querySuite: 'Recommended'
+        timeout: '1800'
+        ram: '16384'
+        addProjectDirToScanningExclusionList: true
+    - task: Semmle@1
+      inputs:
+        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-plugin-api/src'
+        language: 'java'
+        querySuite: 'Recommended'
+        timeout: '1800'
+        ram: '16384'
+        addProjectDirToScanningExclusionList: true
+    - task: Semmle@1
+      inputs:
+        sourceCodeDirectory: '$(Build.SourcesDirectory)/gradle-language-server/src'
+        language: 'java'
+        querySuite: 'Recommended'
+        timeout: '1800'
+        ram: '16384'
+        addProjectDirToScanningExclusionList: true
 
   - job: ci
     dependsOn: cred_scan
